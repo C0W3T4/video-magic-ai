@@ -1,18 +1,13 @@
 import { OpenAIStream, streamToResponse } from 'ai'
 import { FastifyInstance } from 'fastify'
-import { z } from 'zod'
 import { openai } from '../lib/openai'
 import { prisma } from '../lib/prisma'
+import { generateAiCompletionRequestBodySchema } from '../schemas/ai-completions'
 
 export async function generateAiCompletionRoute(app: FastifyInstance) {
   app.post('/ai/complete', async (req, reply) => {
-    const bodySchema = z.object({
-      videoId: z.string().uuid(),
-      prompt: z.string(),
-      temperature: z.number().min(0).max(1).default(0.5),
-    })
-
-    const { videoId, prompt, temperature } = bodySchema.parse(req.body)
+    const { videoId, prompt, temperature } =
+      generateAiCompletionRequestBodySchema.parse(req.body)
 
     const video = await prisma.videos.findUniqueOrThrow({
       where: {
